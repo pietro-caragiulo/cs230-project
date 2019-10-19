@@ -7,48 +7,41 @@ import matplotlib.pyplot as plt
 class DataParser(object):
 
     # Attributes
-    CSV_FILE = ''
-    CSV_HEADER = ''
-    NX = 0
-    M = 0
-    RAW_DF   = None
-    RAW_NP   = None
+    CSV_FILE      = ''
+    CSV_HEADER    = ''
+    NAME          = ''
+    DESCRIPTION   = ''
+    DATA_DF       = None
+    DATA_NP       = None # numpy array of shape (nx, m)
+    DATA_ROWS     = 0
+    DATA_COLUMNS  = 0
+    DATA_NX       = 0
+    DATA_M        = 0
 
-    def __init__(self, csvFile) -> None:
+    def __init__(self, signal, background, name='', descr='') -> None:
         '''
+        Merge signal and background dataframe and add a label column
+        :param signal    : CsvParser Object
+        :param background: CsvParser Object
+        '''
+        df_signal              = signal.DATA_DF
+        df_background          = background.DATA_DF
+        pd.options.mode.chained_assignment = None  # default='warn'
+        df_signal    ['label'] = 1
+        df_background['label'] = 0
+        pd.options.mode.chained_assignment = 'warn'  # default='warn'
+        df_merge               = pd.concat([df_background, df_signal])
+        df_shuffle             = df_merge.sample(frac=1, random_state=1)
+        self.updateData(df_shuffle)
 
-        :param csvFile: CSV File location
-        '''
-        df      = pd.read_csv(csvFile)
-        rows    = df.shape[0]
-        columns = df.shape[1]
-        logi('Reading CSV file %s found %d rows and %d columns' % (csvFile, rows, columns))
-        self.NX = columns
-        self.M  = rows
-        logi('Found %d features and %d samples' % (self.NX, self.M))
-        self.CSV_FILE   = csvFile
-        self.RAW_DF = df
-        self.CSV_HEADER = self.getHeader(df)
-        self.to_numpy()
-
-    def getHeader(self, df):
-        return list(df.columns)
+    def updateData(self, df):
+        self.DATA_DF                      = df
+        self.DATA_NP                      = df.to_numpy().T
+        self.DATA_ROWS, self.DATA_COLUMNS = df.shape
+        self.DATA_M   , self.DATA_NX      = df.shape
 
 
-    def getDF(self):
-        '''
-        Get the dataframe from csvFile
-        :return:
-        '''
-        return self.RAW_DF
 
-    def to_numpy(self):
-        '''
-        Convert the Dataframe into a numpy array
-        :return: numpy array of shape (nx, m)
-        '''
-        self.RAW_NP = self.RAW_DF.to_numpy()
-        return self.RAW_NP
 
 # TODO
 # def load_dataset():

@@ -29,6 +29,7 @@ class DataParser(object):
         self.CSV_FILE   = csvFile
         self.RAW_DF = df
         self.CSV_HEADER = self.getHeader(df)
+        self.to_numpy()
 
     def getHeader(self, df):
         return list(df.columns)
@@ -71,8 +72,8 @@ def main():
     logi('Executing main')
     cwd = os.getcwd()
     # raw = DataParser(os.path.join(cwd, 'data', 'pg.csv'))
-    background = DataParser(os.path.join(cwd, 'data', 'tritrig-wab-beam_100MeV_L1L1_loose.csv'))
-    signal     = DataParser(os.path.join(cwd, 'data', 'ap_100MeV_L1L1_loose.csv'))
+    background = DataParser(os.path.join(cwd, 'datasets', 'tritrig-wab-beam_100MeV_L1L1_loose.csv'))
+    signal     = DataParser(os.path.join(cwd, 'datasets', 'ap_100MeV_L1L1_loose.csv'))
 
     print(background.getDF())
 

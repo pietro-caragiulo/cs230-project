@@ -5,7 +5,9 @@ import matplotlib.pyplot as plt
 
 
 class CsvParser(object):
-
+    '''
+    CsvParser objects attributes map the CSV structure
+    '''
     # Attributes
     CSV_FILE      = ''
     CSV_HEADER    = ''
@@ -17,15 +19,16 @@ class CsvParser(object):
     RAW_COLUMNS   = 0
     RAW_NX        = 0
     RAW_M         = 0
+    DATA_HEADER   = ''
     DATA_DF       = None
     DATA_NP       = None # numpy array of shape (nx, m)
     DATA_ROWS     = 0
     DATA_COLUMNS  = 0
     DATA_NX       = 0
     DATA_M        = 0
-    FILTERED_DF   = None
+    FILTERED_DF   = None # Filtered out rows
 
-    def __init__(self, csvFile, clean=True, name='', descr='') -> None:
+    def __init__(self, csvFile, clean=True, filter=True, name='', descr='') -> None:
         '''
 
         :param csvFile: CSV File location
@@ -44,8 +47,11 @@ class CsvParser(object):
         self.NAME        = name
         self.DESCRIPTION = descr
         self.updateRaw(df)
+        if filter:
+            df = self.filter(df)
         if clean:
-            df = self.clean()
+            logi('Cleaning data')
+            df = self.clean(df)
         self.updateData(df)
         self.assertShapes()
 
@@ -59,7 +65,6 @@ class CsvParser(object):
         self.DATA_ROWS, self.DATA_COLUMNS = df.shape
         self.DATA_M   , self.DATA_NX      = df.shape
 
-
     def getHeader(self, df):
         return list(df.columns)
 
@@ -71,12 +76,11 @@ class CsvParser(object):
         '''
         return self.RAW_DF
 
-    def clean(self):
+    def clean(self, df):
         '''
         Clean RAW_DF based on a hard coded condition 'condition1'
         :return: clean DataFrame
         '''
-        df                                = self.RAW_DF
         condition1                        = df['vz'] > 0
         # condition2 ....
 
@@ -86,7 +90,16 @@ class CsvParser(object):
         df                                = df[condition]
         self.DATA_ROWS, self.DATA_COLUMNS = df.shape
         self.DATA_M, self.DATA_NX         = df.shape
-        logi('Filtered %d samples ' % (self.RAW_M - self.DATA_M))
+        logi('Cleaned %d samples ' % (self.RAW_M - self.DATA_M))
+        return df
+
+    def filter(self, df):
+        # list of columns/features in the output dataframe
+        column_select = ['vx', 'vy', 'vz']
+
+        self.DATA_HEADER = column_select
+        logi('Filtering data removing these columns %s' % column_select)
+        df = df[column_select]
         return df
 
     def assertShapes(self):

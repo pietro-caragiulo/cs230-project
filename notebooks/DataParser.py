@@ -59,9 +59,9 @@ Week 2 - TensorFlow notebook
         :param test_size    : test size % value is between (0, 1)
         :return: X, Y train and test sets (split is specified by the input variable test_size)
         '''
-        X_train, X_test, Y_train, Y_test = train_test_split(self.X, self.X, test_size = test_size, random_state = 1)
+        X_train, X_test, Y_train, Y_test = train_test_split(self.X.T, self.Y.T, test_size = test_size, random_state = 1)
         classes = self.DATA_DF.label.unique()
-        return X_train, Y_train, X_test, Y_test, classes
+        return X_train.T, Y_train.T, X_test.T, Y_test.T, classes
 
     def assertShapes(self):
         assert(self.X.shape[1]  == self.Y.shape[1])

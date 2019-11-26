@@ -209,6 +209,7 @@ for entry in xrange(events.GetEntries()):
 	posTrkZ0[0] = events.posTrkZ0
 	posTrkD0Err[0] = events.posTrkD0Err
 	posTrkLambdaErr[0] = events.posTrkLambdaErr
+	posTrkZ0Err[0] = events.posTrkZ0Err
 	zbin = reweight.FindBin(events.triEndZ)
 	copy = reweight.GetBinContent(zbin)
 	for i in range(int(copy)):

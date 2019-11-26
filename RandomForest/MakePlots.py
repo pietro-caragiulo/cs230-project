@@ -9,24 +9,20 @@ def MakePlots(clf, param_list, param_min, param_max,
 	X_train=None, Y_train=None, X_val=None, Y_val=None, X_test=None, Y_test=None, 
 	uncVZi=2, clf_cut=0.5, threshold_min=0.9, 
 	nBins=150, fpr_max=0.25, PDFbasename=""):
-	#if(X_train == None and Y_train == None and X_val == None and Y_val == None and X_test == None and Y_test == None):
-	#	print("Train, validaton, and test sets are all NONE.")
-	#	return
 	#if(X_train != None and Y_train != None):
-	if(1 > 0):
-		y_predictions = clf.predict(X_train)
-		y_predictions_proba = clf.predict_proba(X_train)
-		MakeClassifierOutputPlots(X_train, Y_train, y_predictions_proba, uncVZi=uncVZi, 
-			minVZ=param_min[uncVZi], maxVZ=param_max[uncVZi], clf_cut=clf_cut, 
-			threshold_min=threshold_min, nBins=nBins, PDFbasename=PDFbasename+"_train")
-		MakeRocCurves(Y_train, y_predictions_proba, fpr_max=fpr_max, threshold_min=threshold_min, 
-			PDFbasename=PDFbasename+"_train")
-		MakeZPlots(X_train, Y_train, y_predictions_proba, uncVZi=uncVZi, minVZ=param_min[uncVZi], 
-			maxVZ=param_max[uncVZi], threshold_min=threshold_min, nBins=nBins, 
-			PDFbasename=PDFbasename+"_train")
-		MakePhysicsPlots(X_train, Y_train, y_predictions, y_predictions_proba, param_list, 
-			param_min, param_max, uncVZi=uncVZi, clf_cut=clf_cut, threshold_min=threshold_min, 
-			nBins=nBins, PDFbasename=PDFbasename+"_train")
+	y_predictions = clf.predict(X_train)
+	y_predictions_proba = clf.predict_proba(X_train)
+	MakeClassifierOutputPlots(X_train, Y_train, y_predictions_proba, uncVZi=uncVZi, 
+		minVZ=param_min[uncVZi], maxVZ=param_max[uncVZi], clf_cut=clf_cut, 
+		threshold_min=threshold_min, nBins=nBins, PDFbasename=PDFbasename+"_train")
+	MakeRocCurves(Y_train, y_predictions_proba, fpr_max=fpr_max, threshold_min=threshold_min, 
+		PDFbasename=PDFbasename+"_train")
+	MakeZPlots(X_train, Y_train, y_predictions_proba, uncVZi=uncVZi, minVZ=param_min[uncVZi], 
+		maxVZ=param_max[uncVZi], threshold_min=threshold_min, nBins=nBins, 
+		PDFbasename=PDFbasename+"_train")
+	MakePhysicsPlots(X_train, Y_train, y_predictions, y_predictions_proba, param_list, 
+		param_min, param_max, uncVZi=uncVZi, clf_cut=clf_cut, threshold_min=threshold_min, 
+		nBins=nBins, PDFbasename=PDFbasename+"_train")
 
 	if(X_val != None and Y_val != None):
 		y_predictions = clf.predict(X_val)

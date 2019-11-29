@@ -1,3 +1,4 @@
 
 notebooks/.idea/*
 *.pyc
+tabnet-pietro/*.csv

@@ -96,12 +96,12 @@ class CsvParser(object):
 
     def filter(self, df):
         # list of columns/features in the output dataframe
-        # column_select = ['vzPull', 'vy', 'vz', 'uncM', 'eleZ0', 'posZ0','projY']  # From Matt
-        column_select = ['vz','vzPull','vy','vyPull','uncM','eleZ0','posZ0','projY','eleTrkTanLambda','posTrkTanLambda']
+        column_select = ['vzPull', 'vy', 'vz', 'uncM', 'eleZ0', 'posZ0','projY']  # From Matt
+        # column_select = ['vz','vzPull','vy','vyPull','uncM','eleZ0','posZ0','projY','eleTrkTanLambda','posTrkTanLambda']
 
 
         self.DATA_HEADER = column_select
-        logi('Filtering data removing these columns %s' % column_select)
+        logi('Filtering data keeping these columns %s' % column_select)
         df = df[column_select]
         return df
 

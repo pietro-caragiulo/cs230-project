@@ -1,0 +1,2 @@
+model_checkpoint_path: "tabnet_forest_covertype_model_combined_08mm.ckpt"
+all_model_checkpoint_paths: "tabnet_forest_covertype_model_combined_08mm.ckpt"

@@ -179,7 +179,7 @@ def main(unused_argv):
   tf.summary.scalar("Test_accuracy", test_acc_op)
 
   # Training setup
-  model_name = "tabnet_forest_covertype_model_" + inFile 
+  model_name = "tabnet_forest_covertype_model_" + inFile
   init = tf.initialize_all_variables()
   init_local = tf.local_variables_initializer()
   init_table = tf.tables_initializer(name="Initialize_all_tables")
@@ -229,6 +229,7 @@ def main(unused_argv):
           file_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
           file_writer.writerow(["ex","yhat","y","vz","uncM"])
           yhat = prediction_test[:,1].eval()
+          type(yhat)
           z = feature_test_batch['vz'].eval()
           y = label_test_batch.eval()
           m = feature_test_batch['uncM'].eval()

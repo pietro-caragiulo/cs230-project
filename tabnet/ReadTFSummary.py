@@ -3,7 +3,11 @@ import MakePlots as plot
 import numpy as np
 import pandas as pd
 
+<<<<<<< HEAD
 path_to_events_file = "tflog/tabnet_forest_covertype_model_combined_08mm/events.out.tfevents.1575660180.cardinalmoose"
+=======
+path_to_events_file = "tflog/tabnet_forest_covertype_model_combined_08mm/events.out.tfevents.1575655497.DESKTOP-4FR3DPO"
+>>>>>>> c5e0af3b0c22394e3524f1047834685726aaeea9
 PDFbasename = "test"
 uncVZi = 0
 #minVZ = -0.5
@@ -118,9 +122,7 @@ plot.PlotAcc(stepAcc,valAcc,testAcc)
 
 eps = 10e-6
 clf_cut = getMaximum(Y_test,Y_test_proba) + eps
-clf_cut = 0.9999584
-clf_cut = 0.9999999
-print clf_cut
+print(clf_cut)
 
 #plot.MakeClassifierOutputPlots(X_train, Y_train,Y_train_proba, uncVZi=uncVZi, minVZ=minVZ, maxVZ=maxVZ, clf_cut=clf_cut, threshold_min=threshold_min, nBins=nBins, PDFbasename=PDFbasename+"_train")
 #plot.MakeRocCurves(ytrain, Y_train_proba, fpr_max=fpr_max, threshold_min=threshold_min, PDFbasename=PDFbasename+"_train")

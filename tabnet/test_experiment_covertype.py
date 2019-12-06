@@ -108,7 +108,7 @@ def main(unused_argv):
       n_parallel=1)
   test_batch = data_helper_covertype.input_fn(
       test_file,
-      num_epochs=100000,
+      num_epochs=10000,
       shuffle=False,
       batch_size=batch_size,
       n_buffer=1,

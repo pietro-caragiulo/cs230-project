@@ -86,6 +86,7 @@ def input_fn(data_file,
   def parse_csv(value_column):
     columns = tf.decode_csv(value_column, record_defaults=defaults)
     features = dict(zip(all_columns, columns))
+    print(features)
     label = features.pop(label_column)
     classes = tf.cast(label, tf.int32)# - 1
     return features, classes

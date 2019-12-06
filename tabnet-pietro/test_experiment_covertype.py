@@ -23,6 +23,10 @@ import data_helper_covertype
 import numpy as np
 import tabnet_model
 import tensorflow as tf
+from DataParser import DataParser
+from CsvParser  import CsvParser
+from utils import *
+import os
 
 # Fix random seeds
 #tf.set_random_seed(1)
@@ -33,9 +37,13 @@ def main(unused_argv):
 
   # Load training and eval data.
 
-  train_file = "combined_08mm.csv"
-  val_file = "combined_08mm.csv"
-  test_file = "combined_08mm.csv"
+  data_dir        = os.path.join(os.getcwd())
+  signal_file     = 'signal.csv'
+  background_file = 'background.csv'
+
+  # train_file = "combined_08mm.csv"
+  # val_file = "combined_08mm.csv"
+  # test_file = "combined_08mm.csv"
 
   # TabNet model
   tabnet_forest_covertype = tabnet_model.TabNet(
@@ -68,28 +76,55 @@ def main(unused_argv):
   sparsity_loss_weight = 0.0001
   gradient_thresh = 2000.0
 
+  background = CsvParser(os.path.join(data_dir, background_file))
+  signal     = CsvParser(os.path.join(data_dir, signal_file))
+
+  myData     = DataParser(signal=signal, background=background)
+
+  X_train, Y_train, X_test, Y_test, classes = myData.load_dataset(test_size=0.1)
+  print(X_train.shape)
+  print(np.tile(Y_train,10).shape)
+  train_batch = tf.data.Dataset.from_tensor_slices((X_train.T, Y_train.T))
+  val_batch = tf.data.Dataset.from_tensor_slices((X_train.T, Y_train.T))
+  test_batch = tf.data.Dataset.from_tensor_slices((X_test.T, Y_test.T))
+
+  # def parse_csv(value_column):
+  #   columns = tf.decode_csv(value_column, record_defaults=defaults)
+  #   features = dict(zip(all_columns, columns))
+  #   print(features)
+  #   label = features.pop(label_column)
+  #   classes = tf.cast(label, tf.int32)# - 1
+  #   return features, classes
+  # #
+  # train_batch.map(parse_csv)
+
+  train_batch.batch(batch_size)
+  val_batch.batch(batch_size)
+  test_batch.batch(batch_size)
+
+
   # Input sampling
-  train_batch = data_helper_covertype.input_fn(
-      train_file,
-      num_epochs=100000,
-      shuffle=True,
-      batch_size=batch_size,
-      n_buffer=1,
-      n_parallel=1)
-  val_batch = data_helper_covertype.input_fn(
-      val_file,
-      num_epochs=10000,
-      shuffle=False,
-      batch_size=batch_size,
-      n_buffer=1,
-      n_parallel=1)
-  test_batch = data_helper_covertype.input_fn(
-      test_file,
-      num_epochs=10000,
-      shuffle=False,
-      batch_size=batch_size,
-      n_buffer=1,
-      n_parallel=1)
+  # train_batch = data_helper_covertype.input_fn(
+  #     train_file,
+  #     num_epochs=100000,
+  #     shuffle=True,
+  #     batch_size=batch_size,
+  #     n_buffer=1,
+  #     n_parallel=1)
+  # val_batch = data_helper_covertype.input_fn(
+  #     val_file,
+  #     num_epochs=10000,
+  #     shuffle=False,
+  #     batch_size=batch_size,
+  #     n_buffer=1,
+  #     n_parallel=1)
+  # test_batch = data_helper_covertype.input_fn(
+  #     test_file,
+  #     num_epochs=10000,
+  #     shuffle=False,
+  #     batch_size=batch_size,
+  #     n_buffer=1,
+  #     n_parallel=1)
 
   train_iter = train_batch.make_initializable_iterator()
   val_iter = val_batch.make_initializable_iterator()

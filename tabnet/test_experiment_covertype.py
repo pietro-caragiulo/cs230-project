@@ -49,8 +49,8 @@ def main(unused_argv):
 
   # Load training and eval data.
 
-  train_file = dataDir + "/" + inFile + "_test.csv"
-  val_file = dataDir + "/" + inFile + "_test.csv"
+  train_file = dataDir + "/" + inFile + "_train.csv"
+  val_file = dataDir + "/" + inFile + "_val.csv"
   test_file = dataDir + "/" + inFile + "_test.csv"
 
   #train_file = "../notebooks/datasets/test2.csv"
@@ -77,7 +77,7 @@ def main(unused_argv):
     print(str(fi) + " : " + column_names[fi])
 
   # Training parameters
-  max_steps = 3
+  max_steps = 10
   display_step = 1
   val_step = 5
   save_step = 5
@@ -110,7 +110,7 @@ def main(unused_argv):
       test_file,
       num_epochs=10000,
       shuffle=False,
-      batch_size=batch_size,
+      batch_size=32768,
       n_buffer=1,
       n_parallel=1)
 

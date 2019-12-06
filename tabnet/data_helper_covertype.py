@@ -22,9 +22,9 @@ from __future__ import print_function
 import tensorflow as tf
 
 # Dataset size
-n_train_samples = 309871
-n_val_samples = 154937
-n_test_samples = 116203
+n_train_samples = 2000
+n_val_samples = 2000
+n_test_samples = 2000
 num_features = 10
 num_classes = 2
 
@@ -86,6 +86,7 @@ def input_fn(data_file,
   def parse_csv(value_column):
     columns = tf.decode_csv(value_column, record_defaults=defaults)
     features = dict(zip(all_columns, columns))
+    print(features)
     label = features.pop(label_column)
     classes = tf.cast(label, tf.int32)# - 1
     return features, classes

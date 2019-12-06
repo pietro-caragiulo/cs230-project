@@ -72,7 +72,7 @@ def PlotAcc(steps,val,test,PNGbasename="test"):
 	plt.xlabel('Step Number')
 	plt.ylabel('Accuracy')
 	plt.title('Validation and Test Accuracy')
-	plt.legend(loc=1)
+	plt.legend(loc=2)
 	PNGname = PNGbasename + "_acc.png"
 	plt.savefig(PNGname)
 
@@ -85,21 +85,21 @@ def MakeClassifierOutputPlots(X, Y, y_predictions_proba, uncVZi=2, minVZ=0, maxV
 	fig, ((ax0, ax1), (ax2, ax3), (ax4, ax5)) = plt.subplots(nrows=3, ncols=2, figsize=(20,24))
 	zcut = 17
 
-	ax0.hist(X[:, uncVZi][Y[:,0] == 0], bins=150, range=(minVZ, maxVZ), alpha=0.8, histtype="stepfilled", label="Background")
-	ax0.hist(X[:, uncVZi][np.logical_and(y_predictions_proba[:,1] < clf_cut, Y[:,0] == 1)], bins=150, range=(minVZ, maxVZ), alpha=0.8, histtype="stepfilled", label="Signal Identified as Background")
-	ax1.hist(X[:, uncVZi][Y[:,0] == 1], bins=150, range=(minVZ, maxVZ), alpha=0.8, histtype="stepfilled", label="Signal")
-	ax1.hist(X[:, uncVZi][np.logical_and(y_predictions_proba[:,1] > clf_cut, Y[:,0] == 0)], bins=150, range=(minVZ, maxVZ), alpha=0.8, histtype="stepfilled", label="Background Identified as Signal")
+	ax0.hist(X[:, uncVZi][Y[:,0] == 0], bins=nBins, range=(minVZ, maxVZ), alpha=0.8, histtype="stepfilled", label="Background")
+	ax0.hist(X[:, uncVZi][np.logical_and(y_predictions_proba[:,1] < clf_cut, Y[:,0] == 1)], bins=nBins, range=(minVZ, maxVZ), alpha=0.8, histtype="stepfilled", label="Signal Identified as Background")
+	ax1.hist(X[:, uncVZi][Y[:,0] == 1], bins=nBins, range=(minVZ, maxVZ), alpha=0.8, histtype="stepfilled", label="Signal")
+	ax1.hist(X[:, uncVZi][np.logical_and(y_predictions_proba[:,1] > clf_cut, Y[:,0] == 0)], bins=nBins, range=(minVZ, maxVZ), alpha=0.8, histtype="stepfilled", label="Background Identified as Signal")
 
-	ax2.hist(X[:, uncVZi][Y[:,0] == 0], bins=150, range=(minVZ, maxVZ), alpha=0.8, histtype="stepfilled", label="Background")
-	ax2.hist(X[:, uncVZi][np.logical_and(y_predictions_proba[:,1] < clf_cut, Y[:,0] == 0)], bins=150, range=(minVZ, maxVZ), alpha=0.8, histtype="stepfilled", label="Background Identified as Background")
-	ax3.hist(X[:, uncVZi][Y[:,0] == 1], bins=150, range=(minVZ, maxVZ), alpha=0.8, histtype="stepfilled", label="Signal")
+	ax2.hist(X[:, uncVZi][Y[:,0] == 0], bins=nBins, range=(minVZ, maxVZ), alpha=0.8, histtype="stepfilled", label="Background")
+	ax2.hist(X[:, uncVZi][np.logical_and(y_predictions_proba[:,1] < clf_cut, Y[:,0] == 0)], bins=nBins, range=(minVZ, maxVZ), alpha=0.8, histtype="stepfilled", label="Background Identified as Background")
+	ax3.hist(X[:, uncVZi][Y[:,0] == 1], bins=nBins, range=(minVZ, maxVZ), alpha=0.8, histtype="stepfilled", label="Signal")
 	n, bins, _ = ax3.hist(X[:, uncVZi][np.logical_and(y_predictions_proba[:,1] > clf_cut, Y[:,0] == 1)], nBins, range=(minVZ, maxVZ), alpha=0.8, histtype="stepfilled", label="Signal Identified as Signal")
 
-	ax4.hist(y_predictions_proba[:,1][Y[:,0] == 0], bins=150, range=(0, 1), alpha=0.8, histtype="stepfilled", label="Background")
-	ax4.hist(y_predictions_proba[:,1][Y[:,0] == 1], bins=150, range=(0, 1), alpha=0.8, histtype="stepfilled", label="Signal")
+	ax4.hist(y_predictions_proba[:,1][Y[:,0] == 0], bins=nBins, range=(0, 1), alpha=0.8, histtype="stepfilled", label="Background")
+	ax4.hist(y_predictions_proba[:,1][Y[:,0] == 1], bins=nBins, range=(0, 1), alpha=0.8, histtype="stepfilled", label="Signal")
 
-	ax5.hist(y_predictions_proba[:,1][Y[:,0] == 0], bins=150, range=(threshold_min, 1), alpha=0.8, histtype="stepfilled", label="Background")
-	ax5.hist(y_predictions_proba[:,1][Y[:,0] == 1], bins=150, range=(threshold_min, 1), alpha=0.8, histtype="stepfilled", label="Signal")
+	ax5.hist(y_predictions_proba[:,1][Y[:,0] == 0], bins=nBins, range=(threshold_min, 1), alpha=0.8, histtype="stepfilled", label="Background")
+	ax5.hist(y_predictions_proba[:,1][Y[:,0] == 1], bins=nBins, range=(threshold_min, 1), alpha=0.8, histtype="stepfilled", label="Signal")
 
 	ax0.set_yscale("log")
 	ax1.set_yscale("log")
@@ -136,10 +136,10 @@ def MakeClassifierOutputPlots(X, Y, y_predictions_proba, uncVZi=2, minVZ=0, maxV
 	zCut_bin = int((zcut-minVZ)/(maxVZ-minVZ)*nBins)
 	signal_yield_old = bin_width * sum(n[zCut_bin:nBins])
 	signal_yield_new = bin_width * sum(n[0:nBins])
-	print (zCut_bin)
-	print (signal_yield_old)
-	print (signal_yield_new)
-	print (signal_yield_new/signal_yield_old)
+	#print (zCut_bin)
+	#print (signal_yield_old)
+	#print (signal_yield_new)
+	#print (signal_yield_new/signal_yield_old)
 
 
 def MakeRocCurves(Y, y_predictions_proba, fpr_max=0.25, threshold_min=0.9,PDFbasename=""):
@@ -226,8 +226,8 @@ def MakeZPlots(X, Y, y_predictions_proba, uncVZi=2, minVZ=0, maxVZ=100,
 	ax1.set_xlim(threshold_min,1)
 	ax1.set_ylim(minVZ, maxVZ)
 
-	ax2.hist2d(y_predictions_proba[:,1][Y[:,0] == 1], X[:,uncVZi][Y[:,0] == 1], bins=100, range=[[0,1],[minVZ, maxVZ]], alpha=0.6, cmin=0.5)
-	ax3.hist2d(y_predictions_proba[:,1][Y[:,0] == 1], X[:,uncVZi][Y[:,0] == 1], bins=100, range=[[threshold_min,1],[minVZ, maxVZ]], alpha=0.6, cmin=0.5)
+	ax2.hist2d(y_predictions_proba[:,1][Y[:,0] == 1], X[:,uncVZi][Y[:,0] == 1], bins=nBins, range=[[0,1],[minVZ, maxVZ]], alpha=0.6, cmin=0.5)
+	ax3.hist2d(y_predictions_proba[:,1][Y[:,0] == 1], X[:,uncVZi][Y[:,0] == 1], bins=nBins, range=[[threshold_min,1],[minVZ, maxVZ]], alpha=0.6, cmin=0.5)
 	ax2.set_xlabel("Classifier Output", fontsize=20)
 	ax2.set_ylabel("Measured Decay Length (mm)", fontsize=20)
 	ax2.set_title("Signal", fontsize=20)
@@ -235,8 +235,8 @@ def MakeZPlots(X, Y, y_predictions_proba, uncVZi=2, minVZ=0, maxVZ=100,
 	ax3.set_ylabel("Measured Decay Length (mm)", fontsize=20)
 	ax3.set_title("Signal", fontsize=20)
 
-	ax4.hist2d(y_predictions_proba[:,1][Y[:,0] == 0], X[:,uncVZi][Y[:,0] == 0], bins=100, range=[[0,1],[minVZ, maxVZ]], alpha=0.6, cmin=0.5, norm=LogNorm())
-	ax5.hist2d(y_predictions_proba[:,1][Y[:,0] == 0], X[:,uncVZi][Y[:,0] == 0], bins=100, range=[[threshold_min,1],[minVZ, maxVZ]], alpha=0.6, cmin=0.5)
+	ax4.hist2d(y_predictions_proba[:,1][Y[:,0] == 0], X[:,uncVZi][Y[:,0] == 0], bins=nBins, range=[[0,1],[minVZ, maxVZ]], alpha=0.6, cmin=0.5, norm=LogNorm())
+	ax5.hist2d(y_predictions_proba[:,1][Y[:,0] == 0], X[:,uncVZi][Y[:,0] == 0], bins=nBins, range=[[threshold_min,1],[minVZ, maxVZ]], alpha=0.6, cmin=0.5)
 	ax4.set_xlabel("Classifier Output", fontsize=20)
 	ax4.set_ylabel("Measured Decay Length (mm)", fontsize=20)
 	ax4.set_title("Background", fontsize=20)

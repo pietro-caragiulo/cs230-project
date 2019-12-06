@@ -168,6 +168,8 @@ class TabNet(object):
         if ni > 0:
 
           decision_out = tf.nn.relu(transform_f4[:, :self.output_dim])
+          #decision_out = tf.nn.sigmoid(transform_f4[:, :self.output_dim])
+          #print(decision_out)
 
           # Decision aggregation.
           output_aggregated += decision_out

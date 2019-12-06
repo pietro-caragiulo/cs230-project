@@ -23,19 +23,39 @@ import data_helper_covertype
 import numpy as np
 import tabnet_model
 import tensorflow as tf
+import MakePlots as plot
+from tensorflow.python.ops import math_ops
+from tensorflow.python.framework import ops
+import pandas as pd
+import csv
 
 # Fix random seeds
-#tf.set_random_seed(1)
 np.random.seed(1)
-
 
 def main(unused_argv):
 
+  #options, remainder = getopt.gnu_getopt(sys.argv[1:], 'd:n:h')
+
+  inFile = "combined_08mm"
+  dataDir = "../notebooks/datasets"
+  nEvents = 131072
+
+  header_file = dataDir + "/" + inFile + "_header.csv"
+  #header_file = "../notebooks/datasets/test3.csv"
+  df = pd.read_csv(header_file)
+  df_vz = df['vz']
+  df_m = df['uncM']
+  df_y = df['signal']
+
   # Load training and eval data.
 
-  train_file = "../notebooks/datasets/combined_08mm.csv"
-  val_file = "../notebooks/datasets/combined_08mm.csv"
-  test_file = "../notebooks/datasets/combined_08mm.csv"
+  train_file = dataDir + "/" + inFile + "_test.csv"
+  val_file = dataDir + "/" + inFile + "_test.csv"
+  test_file = dataDir + "/" + inFile + "_test.csv"
+
+  #train_file = "../notebooks/datasets/test2.csv"
+  #val_file = "../notebooks/datasets/test2.csv"
+  #test_file = "../notebooks/datasets/test2.csv"
 
   # TabNet model
   tabnet_forest_covertype = tabnet_model.TabNet(
@@ -57,16 +77,19 @@ def main(unused_argv):
     print(str(fi) + " : " + column_names[fi])
 
   # Training parameters
-  max_steps = 10
-  display_step = 5
+  max_steps = 3
+  display_step = 1
   val_step = 5
   save_step = 5
   init_localearning_rate = 0.02
   decay_every = 500
   decay_rate = 0.95
-  batch_size = 512
+  batch_size = nEvents
+  #batch_size = 3000000
   sparsity_loss_weight = 0.0001
   gradient_thresh = 2000.0
+  nSamples = nEvents
+  min_steps = max_steps - int(nSamples/batch_size)
 
   # Input sampling
   train_batch = data_helper_covertype.input_fn(
@@ -85,7 +108,7 @@ def main(unused_argv):
       n_parallel=1)
   test_batch = data_helper_covertype.input_fn(
       test_file,
-      num_epochs=10000,
+      num_epochs=100000,
       shuffle=False,
       batch_size=batch_size,
       n_buffer=1,
@@ -99,21 +122,25 @@ def main(unused_argv):
   feature_val_batch, label_val_batch = val_iter.get_next()
   feature_test_batch, label_test_batch = test_iter.get_next()
 
+  #feature_test_batch = feature_test_batch2
+
   # Define the model and losses
 
   encoded_train_batch, total_entropy = tabnet_forest_covertype.encoder(
       feature_train_batch, reuse=False, is_training=True)
 
-  logits_orig_batch, _ = tabnet_forest_covertype.classify(
+  logits_orig_batch, prediction_train = tabnet_forest_covertype.classify(
       encoded_train_batch, reuse=False)
-  print("label_train_batch")
-  print(label_train_batch)
   softmax_orig_key_op = tf.reduce_mean(
       tf.nn.sparse_softmax_cross_entropy_with_logits(
           logits=logits_orig_batch, labels=label_train_batch))
+  #logits_orig_batch = ops.convert_to_tensor(logits_orig_batch, name="logits_orig_batch")
+  #label_train_batch = ops.convert_to_tensor(label_train_batch, name="label_train_batch")
+  #label_train_batch.get_shape().merge_with(logits_orig_batch.get_shape())
+  #softmax_orig_key_op = (1 - label_train_batch) * math_ops.log1p(logits_orig_batch) + label_train_batch * math_ops.log1p(1-logits_orig_batch)
 
   train_loss_op = softmax_orig_key_op + sparsity_loss_weight * total_entropy
-  tf.summary.scalar("Total_loss", train_loss_op)
+  tf.summary.scalar("Total_loss_test", train_loss_op)
 
   # Optimization step
   global_step = tf.train.get_or_create_global_step()
@@ -133,16 +160,23 @@ def main(unused_argv):
   # Model evaluation
 
   # Validation performance
-  encoded_val_batch, _ = tabnet_forest_covertype.encoder(
+  encoded_val_batch, total_entropy_val = tabnet_forest_covertype.encoder(
       feature_val_batch, reuse=True, is_training=True)
 
-  _, prediction_val = tabnet_forest_covertype.classify(
+  logits_val_batch, prediction_val = tabnet_forest_covertype.classify(
       encoded_val_batch, reuse=True)
+
+  softmax_val_key_op = tf.reduce_mean(
+      tf.nn.sparse_softmax_cross_entropy_with_logits(
+          logits=logits_val_batch, labels=label_val_batch))
+
+  val_loss_op = softmax_val_key_op + sparsity_loss_weight * total_entropy_val
+  tf.summary.scalar("Total_loss_val", val_loss_op)
 
   predicted_labels = tf.cast(tf.argmax(prediction_val, 1), dtype=tf.int32)
   val_eq_op = tf.equal(predicted_labels, label_val_batch)
   val_acc_op = tf.reduce_mean(tf.cast(val_eq_op, dtype=tf.float32))
-  tf.summary.scalar("Val accuracy", val_acc_op)
+  tf.summary.scalar("Val_accuracy", val_acc_op)
 
   # Test performance
   encoded_test_batch, _ = tabnet_forest_covertype.encoder(
@@ -154,10 +188,10 @@ def main(unused_argv):
   predicted_labels = tf.cast(tf.argmax(prediction_test, 1), dtype=tf.int32)
   test_eq_op = tf.equal(predicted_labels, label_test_batch)
   test_acc_op = tf.reduce_mean(tf.cast(test_eq_op, dtype=tf.float32))
-  tf.summary.scalar("Test accuracy", test_acc_op)
+  tf.summary.scalar("Test_accuracy", test_acc_op)
 
   # Training setup
-  model_name = "tabnet_forest_covertype_model"
+  model_name = "tabnet_forest_covertype_model_" + inFile 
   init = tf.initialize_all_variables()
   init_local = tf.local_variables_initializer()
   init_table = tf.tables_initializer(name="Initialize_all_tables")
@@ -202,6 +236,45 @@ def main(unused_argv):
       if step % save_step == 0:
         saver.save(sess, "./checkpoints/" + model_name + ".ckpt")
 
+      if(step == max_steps):
+        with open("./tflog/" + model_name + '/' + inFile + '_out.csv', mode='w') as output_file:
+          file_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+          file_writer.writerow(["ex","yhat","y","vz","uncM"])
+          yhat = prediction_test[:,1].eval()
+          z = feature_test_batch['vz'].eval()
+          y = label_test_batch.eval()
+          m = feature_test_batch['uncM'].eval()
+          #y, yhat, z, m = [label_test_batch.eval(),prediction_test[:,1].eval(),feature_test_batch['vz'].eval(),feature_test_batch['uncM'].eval()]
+          print(yhat)
+          print(y)
+          print(z)
+          print(m)
+          for i in range(len(y)):
+            #file_writer.writerow([str(i),str(yhat[i]),str(df_y[i]),str(df_vz[i]),str(df_m[i])])
+            file_writer.writerow([str(i),str(yhat[i]),str(y[i]),str(z[i]),str(m[i])])
+
+      #if(step > min_steps):
+        #j = step
+        #with open("./tflog/" + model_name + '/' + inFile + '_out.csv', mode='w') as output_file:
+          #file_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+          #file_writer.writerow(["ex","yhat","y","vz","uncM"])
+          #yhat = prediction_test[:,1].eval()
+          #y = label_test_batch.eval()
+          #for i in range(batch_size):
+            #index = (j - min_steps - 1) * batch_size + i
+            #tf.summary.scalar("ytest_hat_%d_%d" % (j, i), prediction_test[i][1])
+            #tf.summary.scalar("ytest_%d_%d" % (j, i), label_test_batch[i])
+            #tf.summary.scalar("yval_hat_%d_%d" % (j, i), prediction_val[i][1])
+            #tf.summary.scalar("yval_%d_%d" % (j, i), label_val_batch[i])
+            #tf.summary.scalar("ytrain_hat_%d_%d" % (j, i), prediction_train[i][1])
+            #tf.summary.scalar("ytrain_%d_%d" % (j, i), label_train_batch[i])
+            #tf.summary.scalar("vztrain_%d_%d" % (j, i), feature_train_batch['vz'][i])
+            #tf.summary.scalar("vzval_%d_%d" % (j, i), feature_val_batch['vz'][i])
+            #tf.summary.scalar("vztest_%d_%d" % (j, i), df_vz[index])
+            #tf.summary.scalar("uncmtrain_%d_%d" % (j, i), feature_train_batch['uncM'][i])
+            #tf.summary.scalar("uncmval_%d_%d" % (j, i), feature_val_batch['uncM'][i])
+            #tf.summary.scalar("uncmtest_%d_%d" % (j, i), df_m[index])
+            #file_writer.writerow([str(index),str(yhat[i]),str(y[i]),str(df_vz[index]),str(df_m[index])])
 
 if __name__ == "__main__":
   app.run(main)

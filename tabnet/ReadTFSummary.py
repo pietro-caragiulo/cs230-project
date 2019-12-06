@@ -1,74 +1,134 @@
 import tensorflow as tf
 import MakePlots as plot
+import numpy as np
+import pandas as pd
 
-path_to_events_file = "tflog/tabnet_forest_covertype_model/events.out.tfevents.1574818339.cardinalmoose"
+path_to_events_file = "tflog/tabnet_forest_covertype_model_combined_08mm/events.out.tfevents.1575609191.cardinalmoose"
+PDFbasename = "test"
+uncVZi = 0
+#minVZ = -0.5
+#maxVZ = 0.5
+minVZ = -50
+maxVZ = 80
+fpr_max = 0.25
+threshold_min = 0.9
+nBins = 150
 
-stepArr = []
+def getMaximum(y,y_predict):
+    maximum = 0.
+    for i in range(len(y[:,0])):
+        if(y[i,0] == 1): continue
+        if(y_predict[i,1] > maximum):
+            maximum = y_predict[i,1]
+    return maximum
+
+trainLoss = []
 trainLoss = []
 valLoss = []
 valAcc = []
 testAcc = []
+ytrainhat = []
+ytrain = []
+yvalhat = []
+yval = []
+ytesthat = []
+ytest = []
+vztrain = []
+vzval = []
+vztest = []
+uncmtrain = []
+uncmval = []
+uncmtest = []
 
-#This is hard-coded for now...
-for i in range(1,21):
-    stepArr.append(i)
-
+countLoss = 0
+countAcc = 0
 for e in tf.train.summary_iterator(path_to_events_file):
     for v in e.summary.value:
-        if(v.tag == 'Total_loss'):
-            valLoss.append(v.simple_value)
+        if('Total_loss' in v.tag):
+            if('val' in v.tag):
+                countLoss = countLoss + 1
+                valLoss.append(v.simple_value)
+            else:
+                trainLoss.append(v.simple_value)
         if(v.tag == 'Val_accuracy'):
+            countAcc = countAcc + 1
             valAcc.append(v.simple_value)
         if(v.tag == 'Test_accuracy'):
             testAcc.append(v.simple_value)
+        if('ytrain' in v.tag):
+            if('hat' in v.tag):
+                ytrainhat.append(v.simple_value)
+            else:
+                ytrain.append(v.simple_value)
+        if('yval' in v.tag):
+            if('hat' in v.tag):
+                yvalhat.append(v.simple_value)
+            else:
+                yval.append(v.simple_value)
+        if('ytest' in v.tag):
+            if('hat' in v.tag):
+                ytesthat.append(v.simple_value)
+            else:
+                ytest.append(v.simple_value)
+        if('vz' in v.tag):
+            if('train' in v.tag):
+                vztrain.append(v.simple_value)
+            elif('val' in v.tag):
+                vzval.append(v.simple_value)
+            else:
+                vztest.append(v.simple_value)
+        if('uncm' in v.tag):
+            if('train' in v.tag):
+                uncmtrain.append(v.simple_value)
+            elif('val' in v.tag):
+                uncmval.append(v.simple_value)
+            else:
+                uncmtest.append(v.simple_value)
 
-print(len(stepArr))
-print(len(valLoss))
-print(len(valAcc))
-plot.PlotLoss(stepArr,valLoss,valLoss)
-plot.PlotAcc(stepArr,valAcc,testAcc)
+stepLoss = []
+for i in range(1,countLoss+1):
+    stepLoss.append(i)
 
+stepAcc = []
+stepSize = int(countLoss/countAcc)
+for i in range(1,countAcc+1):
+    stepAcc.append(i*stepSize)
 
-#import numpy as np
-#from tensorflow.python.summary.event_accumulator import EventAccumulator
+df = pd.read_csv('tflog/tabnet_forest_covertype_model_combined_08mm/combined_08mm_out.csv')
+df_vz = df['vz']
+df_m = df['uncM']
+df_yhat = df['yhat']
+df_y = df['y']
+X_test = np.tile(np.asarray(df_vz).reshape(-1,1),(1,2))
+Y_test = np.tile(np.asarray(df_y).reshape(-1,1),(1,2))
+Y_test_proba =  np.tile(np.asarray(df_yhat).reshape(-1,1),(1,2))
 
-#import matplotlib as mpl
-#import matplotlib.pyplot as plt
+X_train = np.tile(np.asarray(vztrain).reshape(-1,1),(1,2))
+X_val = np.tile(np.asarray(vzval).reshape(-1,1),(1,2))
+#X_test = np.tile(np.asarray(vztest).reshape(-1,1),(1,2))
+Y_train = np.tile(np.asarray(ytrain).reshape(-1,1),(1,2))
+Y_val = np.tile(np.asarray(yval).reshape(-1,1),(1,2))
+#Y_test = np.tile(np.asarray(ytest).reshape(-1,1),(1,2))
+Y_train_proba =  np.tile(np.asarray(yvalhat).reshape(-1,1),(1,2))
+Y_val_proba =  np.tile(np.asarray(yvalhat).reshape(-1,1),(1,2))
+#Y_test_proba =  np.tile(np.asarray(ytesthat).reshape(-1,1),(1,2))
 
-#def plot_tensorflow_log(path):
+plot.PlotLoss(stepLoss,trainLoss,valLoss)
+plot.PlotAcc(stepAcc,valAcc,testAcc)
 
-    # Loading too much data is slow...
-#    tf_size_guidance = {
-#        'compressedHistograms': 10,
-#        'images': 0,
-#        'scalars': 100,
-#        'histograms': 1
-#    }
+eps = 10e-6
+clf_cut = getMaximum(Y_test,Y_test_proba) + eps
+print clf_cut
 
-#    event_acc = EventAccumulator(path, tf_size_guidance)
-#    event_acc.Reload()
+#plot.MakeClassifierOutputPlots(X_train, Y_train,Y_train_proba, uncVZi=uncVZi, minVZ=minVZ, maxVZ=maxVZ, clf_cut=clf_cut, threshold_min=threshold_min, nBins=nBins, PDFbasename=PDFbasename+"_train")
+#plot.MakeRocCurves(ytrain, Y_train_proba, fpr_max=fpr_max, threshold_min=threshold_min, PDFbasename=PDFbasename+"_train")
+#plot.MakeZPlots(X_train, Y_train, Y_train_proba, uncVZi=uncVZi, minVZ=minVZ, maxVZ=maxVZ, threshold_min=threshold_min, nBins=nBins, PDFbasename=PDFbasename+"_train")
 
-    # Show all tags in the log file
-    #print(event_acc.Tags())
+#plot.MakeClassifierOutputPlots(X_val, Y_val,Y_val_proba, uncVZi=uncVZi, minVZ=minVZ, maxVZ=maxVZ, clf_cut=clf_cut, threshold_min=threshold_min, nBins=nBins, PDFbasename=PDFbasename+"_val")
+#plot.MakeRocCurves(yval, Y_val_proba, fpr_max=fpr_max, threshold_min=threshold_min, PDFbasename=PDFbasename+"_val")
+#plot.MakeZPlots(X_val, Y_val, Y_val_proba, uncVZi=uncVZi, minVZ=minVZ, maxVZ=maxVZ, threshold_min=threshold_min, nBins=nBins, PDFbasename=PDFbasename+"_val")
 
-#    training_accuracies =   event_acc.Scalars('Test_accuracy')
-#    validation_accuracies = event_acc.Scalars('Val_accuracy')
-
-#    steps = 10
-#    x = np.arange(steps)
-#    y = np.zeros([steps, 2])
-
-#    for i in xrange(steps):
-#        y[i, 0] = training_accuracies[i][2] # value
-#        y[i, 1] = validation_accuracies[i][2]
-
-#    plt.plot(x, y[:,0], label='training accuracy')
-#    plt.plot(x, y[:,1], label='validation accuracy')
-
-#    plt.xlabel("Steps")
-#    plt.ylabel("Accuracy")
-#    plt.title("Training Progress")
-#    plt.legend(loc='upper right', frameon=True)
-#    plt.show()
-
-#plot_tensorflow_log(path_to_events_file)
+plot.MakeClassifierOutputPlots(X_test, Y_test,Y_test_proba, uncVZi=uncVZi, minVZ=minVZ, maxVZ=maxVZ, clf_cut=clf_cut, threshold_min=threshold_min, nBins=nBins, PDFbasename=PDFbasename+"_test")
+#plot.MakeRocCurves(ytest, Y_test_proba, fpr_max=fpr_max, threshold_min=threshold_min, PDFbasename=PDFbasename+"_test")
+plot.MakeRocCurves(df_y, Y_test_proba, fpr_max=fpr_max, threshold_min=threshold_min, PDFbasename=PDFbasename+"_test")
+plot.MakeZPlots(X_test, Y_test, Y_test_proba, uncVZi=uncVZi, minVZ=minVZ, maxVZ=maxVZ, threshold_min=threshold_min, nBins=nBins, PDFbasename=PDFbasename+"_test")

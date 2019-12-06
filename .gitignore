@@ -2,3 +2,5 @@
 notebooks/.idea/*
 *.pyc
 tabnet-pietro/*.csv
+tabnet-pietro/tflog/*
+tabnet/tflog/*

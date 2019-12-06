@@ -34,14 +34,11 @@ np.random.seed(1)
 
 def main(unused_argv):
 
-  #options, remainder = getopt.gnu_getopt(sys.argv[1:], 'd:n:h')
-
   inFile = "combined_08mm"
   dataDir = "../notebooks/datasets"
   nEvents = 131072
 
   header_file = dataDir + "/" + inFile + "_header.csv"
-  #header_file = "../notebooks/datasets/test3.csv"
   df = pd.read_csv(header_file)
   df_vz = df['vz']
   df_m = df['uncM']
@@ -52,10 +49,6 @@ def main(unused_argv):
   train_file = dataDir + "/" + inFile + "_train.csv"
   val_file = dataDir + "/" + inFile + "_val.csv"
   test_file = dataDir + "/" + inFile + "_test.csv"
-
-  #train_file = "../notebooks/datasets/test2.csv"
-  #val_file = "../notebooks/datasets/test2.csv"
-  #test_file = "../notebooks/datasets/test2.csv"
 
   # TabNet model
   tabnet_forest_covertype = tabnet_model.TabNet(
@@ -85,7 +78,6 @@ def main(unused_argv):
   decay_every = 500
   decay_rate = 0.95
   batch_size = nEvents
-  #batch_size = 3000000
   sparsity_loss_weight = 0.0001
   gradient_thresh = 2000.0
   nSamples = nEvents
@@ -134,10 +126,6 @@ def main(unused_argv):
   softmax_orig_key_op = tf.reduce_mean(
       tf.nn.sparse_softmax_cross_entropy_with_logits(
           logits=logits_orig_batch, labels=label_train_batch))
-  #logits_orig_batch = ops.convert_to_tensor(logits_orig_batch, name="logits_orig_batch")
-  #label_train_batch = ops.convert_to_tensor(label_train_batch, name="label_train_batch")
-  #label_train_batch.get_shape().merge_with(logits_orig_batch.get_shape())
-  #softmax_orig_key_op = (1 - label_train_batch) * math_ops.log1p(logits_orig_batch) + label_train_batch * math_ops.log1p(1-logits_orig_batch)
 
   train_loss_op = softmax_orig_key_op + sparsity_loss_weight * total_entropy
   tf.summary.scalar("Total_loss_test", train_loss_op)
@@ -244,13 +232,7 @@ def main(unused_argv):
           z = feature_test_batch['vz'].eval()
           y = label_test_batch.eval()
           m = feature_test_batch['uncM'].eval()
-          #y, yhat, z, m = [label_test_batch.eval(),prediction_test[:,1].eval(),feature_test_batch['vz'].eval(),feature_test_batch['uncM'].eval()]
-          print(yhat)
-          print(y)
-          print(z)
-          print(m)
           for i in range(len(y)):
-            #file_writer.writerow([str(i),str(yhat[i]),str(df_y[i]),str(df_vz[i]),str(df_m[i])])
             file_writer.writerow([str(i),str(yhat[i]),str(y[i]),str(z[i]),str(m[i])])
 
       #if(step > min_steps):

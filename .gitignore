@@ -4,3 +4,5 @@ notebooks/.idea/*
 tabnet-pietro/*.csv
 tabnet-pietro/tflog/*
 tabnet/tflog/*
+final/tabnet/tflog/*
+final/tabnet/checkpoints/*

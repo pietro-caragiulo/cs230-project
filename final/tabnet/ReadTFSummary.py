@@ -3,9 +3,9 @@ import MakePlots as plot
 import numpy as np
 import pandas as pd
 
-path_to_events_file = "tflog/tabnet_forest_covertype_model_combined_08mm/events.out.tfevents.1575672319.cardinalmoose"
+path_to_events_file = "tflog/tabnet_forest_covertype_model_combined_2mm_01/events.out.tfevents.1575684956.cardinalmoose"
 
-PDFbasename = "test"
+PDFbasename = "tflog/tabnet_forest_covertype_model_combined_2mm_01/plots"
 uncVZi = 0
 #minVZ = -0.5
 #maxVZ = 0.5
@@ -95,7 +95,7 @@ stepSize = int(countLoss/countAcc)
 for i in range(1,countAcc+1):
     stepAcc.append(i*stepSize)
 
-df = pd.read_csv('tflog/tabnet_forest_covertype_model_combined_08mm/combined_08mm_out.csv')
+df = pd.read_csv('tflog/tabnet_forest_covertype_model_combined_2mm_01/combined_2mm_01_out.csv')
 df_vz = df['vz']
 df_m = df['uncM']
 df_yhat = df['yhat']
@@ -119,7 +119,6 @@ plot.PlotAcc(stepAcc,valAcc,testAcc)
 
 eps = 10e-6
 clf_cut = getMaximum(Y_test,Y_test_proba) + eps
-clf_cut = 0.995
 print(clf_cut)
 
 #plot.MakeClassifierOutputPlots(X_train, Y_train,Y_train_proba, uncVZi=uncVZi, minVZ=minVZ, maxVZ=maxVZ, clf_cut=clf_cut, threshold_min=threshold_min, nBins=nBins, PDFbasename=PDFbasename+"_train")

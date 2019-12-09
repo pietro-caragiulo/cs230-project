@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.colors import LogNorm
 from sklearn.metrics import roc_curve, auc
+plt.style.use('ggplot')
 
 def MakePlots(clf, param_list, param_min, param_max, 
 	X_train=None, Y_train=None, X_val=None, Y_val=None, X_test=None, Y_test=None, 
